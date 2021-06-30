@@ -335,11 +335,15 @@ function drawList(data){
 			tract.append("div").html("+").style("position","relative").style("float","right")
 			.style("font-size","18px")
 			.style("cursor","pointer")
-			.style("border-radius","10px")
+			.style("border-radius","15px")
 			.style("background-color","black")
 			.style("color","#fff")
 			.style("width","20px")
 			.style("height","20px")
+			//.style("padding","2px")
+			.style("text-align","center")
+			.style("line-height","100%")
+			
 			
 			tract.append("img")
 			.attr("src","https://jjjiia.github.io/svi/tracts/"+highs[i].county+".png")
