@@ -331,21 +331,30 @@ function drawList(data){
 			.style("padding","10px")
 			.attr("id",highs[i].county)
 			.attr("class","rankItem")
+			
 			tract.append("div").html("+").style("position","relative").style("float","right")
+			.style("font-size","18px")
+			.style("cursor","pointer")
+			.style("border-radius","10px")
+			.style("background-color","black")
+			.style("color","#fff")
+			.style("width","20px")
+			.style("height","20px")
+			
 			tract.append("img")
 			.attr("src","https://jjjiia.github.io/svi/tracts/"+highs[i].county+".png")
 			.attr("class","tract")
 			
 			
 			tract.append("div")
-					.html(highs[i].countyName.replace("Census ","")
- 					.replace(", New York County"," Manhattan")
- 					.replace(", Richmond County"," Staten Island")
- 					.replace(", Kings County"," Brooklyn")
- 					.replace("County","")
- 					.replace(", New York","")
- 				//+" <strong>"+Math.round(highs[i].tally*100)/100+"</strong>"
- 		)
+					.html((parseInt(i)+1)+". "+highs[i].countyName.replace("Census ","")
+	 					.replace(", New York County"," Manhattan")
+	 					.replace(", Richmond County"," Staten Island")
+	 					.replace(", Kings County"," Brooklyn")
+	 					.replace("County","")
+	 					.replace(", New York","")
+			 		)
+					.style("padding","5px")
 // 			.attr("cursor","pointer")
 // 			.style("margin-left","10px")
 // 			.on("mouseover",function(){
