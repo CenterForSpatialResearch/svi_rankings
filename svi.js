@@ -13,6 +13,7 @@
 //SECTION 1
 //Setup variables, may still need some cleaning to get rid of unused ones
 var map;
+var toggleList = "high"
 var pub = {
     all:null,
     min:999,
@@ -248,7 +249,7 @@ function ready(counties){
 			.style('padding-top',"20px")
 
         for(var t in themeContent){//for each metric under theme, add the name of the metric
-
+			
             var item = d3.select("#measures").append("div").attr("id",themeContent[t])
             .style("cursor","pointer")
 			.style("margin-left","10px")
@@ -265,14 +266,44 @@ function ready(counties){
             .attr("id",themeContent[t])
 			.style("display","inline-block")
             .attr("class","measureLable")
-            .attr("theme",themeName)
+            .attr("theme",themeContent[t])
 			.html(themeDisplayText[themeContent[t]])
             .style("cursor","pointer")
 			
-			item.on("mouseover",function(){d3.select(this).style("background-color","yellow")})
-			item.on("mouseout",function(){d3.select(this).style("background-color","#fff")})
+			item.append("div")
+            .attr("id",themeContent[t]+"_only")
+			.style("display","inline-block")
+            .attr("class","only")
+            .attr("theme",themeContent[t]+"_only")
+			.html("only")
+            .style("cursor","pointer")
+			.style("font-size","11px")
+			.style("font-style","italic")
+			.style("text-decoration","underline")
+			//.style("width","100px")
+			.style("float","right")
+			.style("margin-right","20px")
+			.style("visibility","hidden")
+			
+			item.on("mouseover",function(){
+				d3.select(this).style("background-color","yellow")
+				var id = d3.select(this).attr("id").replace("_only","")
+				console.log(id)
+				d3.select("#"+id+"_only").style("visibility","visible")
+		
+			})
+			item.on("mouseout",function(){
+				d3.select(this).style("background-color","#fff")
+
+				var id = d3.select(this).attr("id").replace("_only","")
+				console.log(id)
+				d3.selectAll(".only").style("visibility","hidden")
+				// if(toggleDictionary[id]==true){
+// 					d3.select("#"+id+"_only").style("visibility","visible")
+// 				}
+			})
             
-			item.on("click",function(){
+			d3.select("#"+themeContent[t]).on("click",function(){
                     var id = d3.select(this).attr("id")
 					
 					//console.log(id)
@@ -293,16 +324,43 @@ function ready(counties){
 						
 						d3.select("#checkbox_"+id).style("border","#aaaaaa 1px solid")
 	                }
-
-					//recalculate the overal SVI accordingly
-					//sort and update the list on the right of ranked counties
-					//recolor the map
+						//console.log(toggleDictionary)
 	                    calculateTally(toggleDictionary)
-	                    // updateList(rankCounties())
                       	drawList(rankCounties())
-	                    colorByPriority(map)
 
             		})
+					
+			d3.selectAll("#"+themeContent[t]+"_only")
+					.on("mouseover",function(){
+						d3.select(this).style("font-weight",700)
+					})
+					.on("click",function(){
+						
+						var id = d3.select(this).attr("id").replace("_only","")
+						var id = d3.select(this).style("visibility","visible")
+						
+						
+						for(var t in toggleDictionary){
+							//console.log(t)
+							if(t==id){
+								console.log(t)
+								toggleDictionary[t]=true
+								
+								d3.select("#"+id).style("color","#000")
+								d3.select("#checkbox_"+id).style("border","#000 1px solid")
+								d3.select("#check_"+id).style("visibility","visible")
+							}else{
+								toggleDictionary[t]=false
+								d3.select("#check_"+t).style("visibility","hidden")
+								d3.select("#"+t).style("color","#aaaaaa")
+								d3.select("#"+t).select(".highlight").style("color","#aaaaaa")
+							}
+						}
+						console.log(toggleDictionary)
+	                    calculateTally(toggleDictionary)
+                      	drawList(rankCounties())
+				
+					})
         }
     }
 
@@ -315,14 +373,19 @@ function ready(counties){
 //these are all the functions that are called, see comments below for what each does
 
 //these 3 functions below draws the ranked/sorted list to the right and updates it when something changes
-function drawList(data){
+function drawList(data){//
     //console.log(Object.keys(data))
     data = data.filter(function(nullnum){
       return nullnum.tally !="-999" &&nullnum.tally!=0}) //filter out tally with -999
     var highs = data.slice(0,100)//
 	var lows = data.slice(-10)
 		d3.selectAll(".rankItem").remove()
-
+		var onCategories =0
+		for(var t in toggleDictionary){
+			if(toggleDictionary[t]==true){
+				onCategories +=1
+			}
+		}
 
 		for(var i in highs){
 			var tract = d3.select("#high")
@@ -335,15 +398,23 @@ function drawList(data){
 			tract.append("img")
 			.attr("src","https://jjjiia.github.io/svi/tracts/"+highs[i].county+".png")
 			.attr("class","tract")
-			
+			var gid = highs[i].county
+			var county = highs[i].data["COUNTY"]
+			var rank = i
+			var svi = highs[i]["data"]["SPL_THEMES"]
+			var currentSVI = highs[i].tally
+			var pop = highs[i]["data"]["E_TOTPOP"]
+			var area = highs[i]["data"]["AREA_SQMI"]
 			
 			tract.append("div")
-					.html(highs[i].countyName.replace("Census ","")
- 					.replace(", New York County"," Manhattan")
- 					.replace(", Richmond County"," Staten Island")
- 					.replace(", Kings County"," Brooklyn")
- 					.replace("County","")
- 					.replace(", New York","")
+					.html("<strong>"+(parseInt(rank)+1)+".</strong> Tract "
+					+gid+" "
+					+county
+					+"<br>SVI for current selection: "+currentSVI+" out of "+ onCategories
+			// +"<br>Current Selection SVI: "
+// 			+currentSVI
+			+"<br>Population: "+pop//+"<br>Area: "+area
+			
  				//+" <strong>"+Math.round(highs[i].tally*100)/100+"</strong>"
  		)
 // 			.attr("cursor","pointer")
