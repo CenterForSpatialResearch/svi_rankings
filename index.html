@@ -72,7 +72,7 @@
 		  }
 		  #high{
 			  color:#000;
-			  margin-left:27%;
+			  margin-left:300px;
 		  }
 		  #low{
 			  color:#00A9CE;
@@ -95,11 +95,23 @@
 			  padding:20px;
 		  }
 		  .tract{
-			height:200px;
+			object-fit: contain;
 			 padding:0px;
-		  }
+
+		  height:350px;
+	  }
 		  .rankItem{
-			  height:200px;
+			  height:350px;
+		  }
+		  #order{
+			  margin-left:350px;
+			  
+		  }
+		  .orderTab{
+			  width:140px;
+		  }
+		  #nav{
+			  width:300px;
 		  }
 </style>
 
@@ -145,11 +157,11 @@
 	<!-- <div id="footerKey"></div> -->
 
 
-
+	<div id="order"><span id="descending"  style="color:red; font-weight:700">Highest Social Vulnerability</span> | <span id="ascending" >Lowest Social Vulnerability</span> </div>
 	<span class="subtitle"><br>Census tracts with highest SVI</span>
 <div id="high">
-	<div id="order"><span id="ascending">Show Highest Social Vulnerability</span> | <span id="descending">Show Lowest Social Vulnerability</span> </div>
-	<div id="map">show map | show tract satellite</div>
+
+	<!-- <div id="map">show map | show tract satellite</div> -->
 </div>
  <div id="rankings"></div>
 

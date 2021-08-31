@@ -14,6 +14,7 @@
 //Setup variables, may still need some cleaning to get rid of unused ones
 var map;
 var toggleList = "high"
+var order = "descending"
 var pub = {
     all:null,
     min:999,
@@ -232,7 +233,11 @@ function ready(counties){
   //  map.once("idle",function(){ colorByPriority(map)})
 
 	//set everything on the check list to true to start - all things are on and included in overall svi
-    for(var n in measures){toggleDictionary[measures[n]]=true}
+    for(var n in measures){
+		console.log(n)
+		toggleDictionary[measures[n]]=true
+	}
+	console.log(toggleDictionary)
     d3.select("#activeThemesText").html("Showing the sum of all "+pub.activeThemes.length+" variables.")
 
 	//for the leftside - draw each of the themes and the metrics under the themes
@@ -288,7 +293,7 @@ function ready(counties){
 			item.on("mouseover",function(){
 				d3.select(this).style("background-color","yellow")
 				var id = d3.select(this).attr("id").replace("_only","")
-				console.log(id)
+				//console.log(id)
 				d3.select("#"+id+"_only").style("visibility","visible")
 		
 			})
@@ -296,7 +301,7 @@ function ready(counties){
 				d3.select(this).style("background-color","#fff")
 
 				var id = d3.select(this).attr("id").replace("_only","")
-				console.log(id)
+				//console.log(id)
 				d3.selectAll(".only").style("visibility","hidden")
 				// if(toggleDictionary[id]==true){
 // 					d3.select("#"+id+"_only").style("visibility","visible")
@@ -343,7 +348,7 @@ function ready(counties){
 						for(var t in toggleDictionary){
 							//console.log(t)
 							if(t==id){
-								console.log(t)
+								//console.log(t)
 								toggleDictionary[t]=true
 								
 								d3.select("#"+id).style("color","#000")
@@ -356,15 +361,32 @@ function ready(counties){
 								d3.select("#"+t).select(".highlight").style("color","#aaaaaa")
 							}
 						}
-						console.log(toggleDictionary)
+						//console.log(toggleDictionary)
 	                    calculateTally(toggleDictionary)
                       	drawList(rankCounties())
 				
 					})
         }
     }
-
-
+	d3.select("#descending")
+	.attr("cursor","pointer")
+	.on("click",function(){
+		order = "descending"
+        calculateTally(toggleDictionary)
+      	drawList(rankCounties())
+		d3.select(this).style("font-weight",700)
+		d3.select("#ascending").style("font-weight",100)
+	})
+	
+	d3.select("#ascending")
+	.attr("cursor","pointer")
+	.on("click",function(){
+		order = "ascending"
+        calculateTally(toggleDictionary)
+      	drawList(rankCounties())
+		d3.select(this).style("font-weight",700)
+		d3.select("#descending").style("font-weight",100)
+	})
 }
 //END SECTION 3 ////////////////////////////////////////////////////////
 
@@ -374,20 +396,28 @@ function ready(counties){
 
 //these 3 functions below draws the ranked/sorted list to the right and updates it when something changes
 function drawList(data){//
+	console.log("draw")
     //console.log(Object.keys(data))
     data = data.filter(function(nullnum){
       return nullnum.tally !="-999" &&nullnum.tally!=0}) //filter out tally with -999
     var highs = data.slice(0,100)//
-	var lows = data.slice(-10)
+	var lows = data.slice(-100)
 		d3.selectAll(".rankItem").remove()
-		var onCategories =0
-		for(var t in toggleDictionary){
-			if(toggleDictionary[t]==true){
-				onCategories +=1
+		
+		
+		var onCategories =15
+		console.log(toggleDictionary)
+		for(var z in toggleDictionary){
+			console.log(z)
+			if(toggleDictionary[z]==false){
+				console.log(onCategories)
+				onCategories -=1
 			}
 		}
-
+		console.log(onCategories)
+		
 		for(var i in highs){
+			//console.log(highs[i])
 			var tract = d3.select("#high")
 			.append("div")
 			.style("display","inline-block")
@@ -397,15 +427,26 @@ function drawList(data){//
 			
 			tract.append("img")
 			.attr("src","https://jjjiia.github.io/svi/tracts/"+highs[i].county+".png")
+			//.attr("src","../2021_SVI_Satellite/tracts/"+highs[i].county+".png")
 			.attr("class","tract")
 			var gid = highs[i].county
 			var county = highs[i].data["COUNTY"]
 			var rank = i
 			var svi = highs[i]["data"]["SPL_THEMES"]
-			var currentSVI = highs[i].tally
+			var currentSVI = Math.round(highs[i]["data"].tally*10000)/10000
 			var pop = highs[i]["data"]["E_TOTPOP"]
 			var area = highs[i]["data"]["AREA_SQMI"]
 			
+            var activeCount = 0
+			var activeTally = 0
+            // for(var u in toggleDictionary){
+  //               if(toggleDictionary[u]==true){
+  // 					//console.log("true")
+  //                   activeTally+=highs[i]["data"][u]
+  //                    activeCount+=1
+  //               }
+  //           }
+  //
 			tract.append("div")
 					.html("<strong>"+(parseInt(rank)+1)+".</strong> Tract "
 					+gid+" "
@@ -470,9 +511,16 @@ function rankCounties(){
             countiesInState.push({county:county,tally:tally,countyName:countyName,data:pub.all.features[c].properties})
         }
     }
-    var sorted = countiesInState.sort(function(a,b){
-        return parseFloat(b.tally)-parseFloat(a.tally)
-    })
+	if(order == "descending"){
+	    var sorted = countiesInState.sort(function(a,b){
+	        return parseFloat(b.tally)-parseFloat(a.tally)
+	    })
+	}else{
+	    var sorted = countiesInState.sort(function(a,b){
+	        return parseFloat(a.tally)-parseFloat(b.tally)
+	    })
+	}
+   
     for(var s in sorted){
         sorted[s]["order"]=s
     }
@@ -557,37 +605,46 @@ function combineGeojson(counties){
 	        var tractFIPS = counties.features[c].properties.FIPS.replace(countyFIPS,"")
 	        var data = counties.features[c].properties//all[tractFIPS]
 	        counties.features[c]["id"]=tractFIPS
+		
 	        //var population = counties.features[c].properties.totalPopulation
 	        //for now PR is undefined
 	        if(data!=undefined){
 	            var keys = Object.keys(data)
+		            for(var k in keys){
+		                var key = keys[k]
+		                 var value = data[key]
+		                if(value!=-999 && value!=999 && excludeKeys.indexOf(key)==-1){
+		                    value = parseFloat(value)
+		                    if(value>minMaxDictionary[key].max){
+		                        minMaxDictionary[key].max=value
+		                    }
+		                    if(value<minMaxDictionary[key].min){
+		                        minMaxDictionary[key].min=value
+		                    }
+		                }
+		                if(value==-999 || value==999){
+		                    value = 0
+		                }
 
-	            for(var k in keys){
-	                var key = keys[k]
-	                 var value = data[key]
-	                if(value!=-999 && value!=999 && excludeKeys.indexOf(key)==-1){
-	                    value = parseFloat(value)
-	                    if(value>minMaxDictionary[key].max){
-	                        minMaxDictionary[key].max=value
-	                    }
-	                    if(value<minMaxDictionary[key].min){
-	                        minMaxDictionary[key].min=value
-	                    }
-	                }
-	                if(value==-999 || value==999){
-	                    value = 0
-	                }
+		                if(isNaN(value)==false){
+		                    value = parseFloat(value)
+		                }
+		                counties.features[c].properties[key]=value
 
-	                if(isNaN(value)==false){
-	                    value = parseFloat(value)
-	                }
-	                counties.features[c].properties[key]=value
-
-	            }
-	            counties.features[c].properties["tally"]=parseFloat(data["SPL_THEMES"])
+		            }
+		            counties.features[c].properties["tally"]=parseFloat(data["SPL_THEMES"])
 	        }
 		}
 		//console.log(counties)
+		var newFeatures=[]
+		for(var k in counties.features){
+			if(counties.features[k]["properties"]["E_TOTPOP"]>100){
+				newFeatures.push(counties.features[k])
+			}
+		}
+		counties.features=newFeatures
+		console.log(newFeatures)
+		console.log(counties)
     return counties
 }
 
@@ -725,26 +782,24 @@ function drawMap(data){//,outline){
              //var countyName = feature["properties"]["COUNTY"]+" County, "+feature["properties"]["ST_ABBR"]
              var population = feature["properties"]["E_TOTPOP"]
              var displayString = "<b>"+locationName+"</b>+<br>" //+ "<br> Population: "+population+"<br>"
-             var activeTally = 0
-             var activeCount = 0
-             for(var t in toggleDictionary){
-                 if(toggleDictionary[t]==true){
-                     activeTally+=feature.properties[t]
-                      activeCount+=1
-                 }
-             }
-			 
-			 
-			 if(Math.round(activeTally*10000)/10000==0){
-	             displayString+="Not enough data for selected variables."
-	             d3.select("#mapPopup").html(displayString+"<br"+variableText)
-				 
-			 }else{
-	             displayString+="Overall SVI: "
-				 	+Math.round(activeTally*10000)/10000
-				 	+" out of "+ activeCount
-	             d3.select("#mapPopup").html(displayString+"<br>"+variableText)
-			 }
+             // var activeCount = 0
+//              for(var t in toggleDictionary){
+//                  if(toggleDictionary[t]==true){
+// 					 console.log("true")
+//                      activeTally+=feature.properties[t]
+//                       activeCount+=1
+//                  }
+//              }
+// 			 if(Math.round(activeTally*10000)/10000==0){
+// 	             displayString+="Not enough data for selected variables."
+// 	             d3.select("#mapPopup").html(displayString+"<br"+variableText)
+//
+// 			 }else{
+// 	             displayString+="Overall SVI: "
+// 				 	+Math.round(activeTally*10000)/10000
+// 				 	+" out of "+ activeCount
+// 	             d3.select("#mapPopup").html(displayString+"<br>"+variableText)
+// 			 }
              
          }
 
@@ -757,25 +812,3 @@ function drawMap(data){//,outline){
           return map
 }
 
-//this is called when map is idle after first loading and then everytime the tally is changed
-function colorByPriority(map){
-	//console.log(pub.all)
-	console.log(pub.activeThemes)
-    map.getSource('counties').setData(pub.all);
-    map.setPaintProperty("counties", 'fill-opacity',1)
-    var matchString = {
-    property: "tally",
-    stops: [
-		[0,"#aaa"],
-		[.000001, colors[0]],
-		[pub.activeThemes.length/5, colors[0]],
-		[pub.activeThemes.length/2,colors[1]],
-		[pub.activeThemes.length/5*4, colors[2]],
-		[pub.activeThemes.length, colors[2]]
-		]
-    }
-	
-    map.setPaintProperty("counties", 'fill-color', matchString)
-    d3.select("#coverage").style("display","block")
-}
-//ENZ ////////////////////////////////////////////////////////
