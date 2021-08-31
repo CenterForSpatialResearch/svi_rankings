@@ -406,15 +406,15 @@ function drawList(data){//
 		
 		
 		var onCategories =15
-		console.log(toggleDictionary)
+		//console.log(toggleDictionary)
 		for(var z in toggleDictionary){
-			console.log(z)
+			//console.log(z)
 			if(toggleDictionary[z]==false){
-				console.log(onCategories)
+				//console.log(onCategories)
 				onCategories -=1
 			}
 		}
-		console.log(onCategories)
+	//	console.log(onCategories)
 		
 		for(var i in highs){
 			//console.log(highs[i])
@@ -446,12 +446,30 @@ function drawList(data){//
   //                    activeCount+=1
   //               }
   //           }
+			//console.log(highs[i])
+  
+  var catString = ""
+  	for(var b in toggleDictionary){
+		if(toggleDictionary[b]==true){
+	  		var cat = b.split("_")[1]
+			var display = themeDisplayTextShort["EPL_"+cat]
+			var pop = highs[i]["data"]["E_"+cat]
+	 		var per = highs[i]["data"]["EP_"+cat]
+	 		//console.log([cat, pop,per])
+			if(cat=="PCI"){
+				catString+="<br>"+display+" $"+pop
+			}else{
+				catString+="<br>"+display+" "+pop+"/"+per+"%"
+			}
+		}
+  	}
   //
 			tract.append("div")
 					.html("<strong>"+(parseInt(rank)+1)+".</strong> Tract "
 					+gid+" "
 					+county
 					+"<br>SVI for current selection: "+currentSVI+" out of "+ onCategories
+					+catString
 			// +"<br>Current Selection SVI: "
 // 			+currentSVI
 			+"<br>Population: "+pop//+"<br>Area: "+area
@@ -638,7 +656,7 @@ function combineGeojson(counties){
 		//console.log(counties)
 		var newFeatures=[]
 		for(var k in counties.features){
-			if(counties.features[k]["properties"]["E_TOTPOP"]>100){
+			if(counties.features[k]["properties"]["E_TOTPOP"]>1000){
 				newFeatures.push(counties.features[k])
 			}
 		}
